@@ -11,7 +11,7 @@ import TaskList from "@/components/organisms/TaskList";
 import FilterBar from "@/components/organisms/FilterBar";
 import { cn } from "@/utils/cn";
 import { isDueToday, isOverdue, parseInputDate } from "@/utils/date";
-import { taskService } from "@/services/taskService";
+import { taskService } from "@/services/api/taskService";
 
 const TasksPage = () => {
   const params = useParams()
