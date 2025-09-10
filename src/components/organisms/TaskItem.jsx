@@ -24,7 +24,7 @@ const category = categories.find(c => c.Id === (task.category_id_c?.Id || task.c
 
   const handleComplete = () => {
     // Show confetti animation
-    if (!task.completed) {
+if (!task.completed_c) {
       showConfetti()
     }
     onComplete()
@@ -67,7 +67,7 @@ task.completed_c && "opacity-75",
         <div className="mt-1">
           <Checkbox
             checked={task.completed}
-            onChange={handleComplete}
+onChange={handleComplete}
             className="transform hover:scale-110 transition-transform duration-200"
           />
         </div>
@@ -77,9 +77,9 @@ task.completed_c && "opacity-75",
           {/* Title */}
           <h3 className={cn(
 "font-semibold text-gray-900 mb-2 leading-tight",
-            task.completed_c && "line-through text-gray-500"
+task.completed_c && "line-through text-gray-500"
           )}>
-            {task.title}
+            {task.title_c}
           </h3>
 
           {/* Description */}
@@ -88,7 +88,7 @@ task.completed_c && "opacity-75",
               "text-gray-600 text-sm mb-3 line-clamp-2",
               task.completed_c && "text-gray-400"
             )}>
-              {task.description}
+              {task.description_c}
             </p>
           )}
 

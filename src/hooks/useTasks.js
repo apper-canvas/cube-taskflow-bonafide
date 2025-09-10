@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react'
-import { taskService } from '@/services/api/taskService'
+import taskService from '@/services/api/taskService'
 
 export const useTasks = () => {
   const [tasks, setTasks] = useState([])

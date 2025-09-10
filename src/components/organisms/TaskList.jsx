@@ -211,7 +211,7 @@ newSet.delete(task.Id)
 const incompleteTasks = tasks.filter(t => !t.completed_c)
               incompleteTasks.forEach(task => handleComplete(task))
             }}
-            disabled={tasks.every(t => t.completed)}
+disabled={tasks.every(t => t.completed_c)}
           >
             <ApperIcon name="CheckCheck" className="h-4 w-4" />
             Complete All
