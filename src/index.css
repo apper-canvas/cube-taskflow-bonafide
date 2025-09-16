@@ -141,13 +141,9 @@
 }
 
 .dragging {
-  @apply opacity-50 rotate-2 scale-95 shadow-lg;
-  transform: rotate(2deg) scale(0.95);
+  @apply opacity-50 rotate-2;
 }
 
-.drag-preview {
-  @apply shadow-2xl border-2 border-primary-300 bg-white rounded-lg;
-}
 /* Custom checkbox styles */
 .custom-checkbox {
   @apply relative appearance-none w-5 h-5 border-2 border-gray-300 rounded cursor-pointer transition-all duration-200;

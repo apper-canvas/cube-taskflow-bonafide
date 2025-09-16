@@ -73,43 +73,15 @@ newSet.delete(task.Id)
         icon="CheckSquare"
       />
     )
-}
-
-  const handleDragStart = (e, task) => {
-    e.dataTransfer.setData('text/plain', task.Id.toString())
-    e.dataTransfer.effectAllowed = 'move'
-    e.currentTarget.classList.add('dragging')
   }
 
-  const handleDragEnd = (e) => {
-    e.currentTarget.classList.remove('dragging')
-  }
-
-  const handleDragOver = (e) => {
-    e.preventDefault()
-    e.dataTransfer.dropEffect = 'move'
-  }
-
-  const handleDrop = (e, targetTask, position = 'after') => {
-    e.preventDefault()
-    const draggedTaskId = parseInt(e.dataTransfer.getData('text/plain'))
-    const draggedTask = tasks.find(t => t.Id === draggedTaskId)
-    
-    if (draggedTask && targetTask && draggedTask.Id !== targetTask.Id && onReorder) {
-      const currentIndex = tasks.findIndex(t => t.Id === draggedTask.Id)
-      const targetIndex = tasks.findIndex(t => t.Id === targetTask.Id)
-      
-      let newIndex = position === 'before' ? targetIndex : targetIndex + 1
-      if (currentIndex < targetIndex && position === 'after') {
-        newIndex = targetIndex
-      }
-      
-      onReorder(draggedTask, newIndex)
+  // Sort tasks by priority and completion status
+  const sortedTasks = sortByPriority(tasks).sort((a, b) => {
+    if (a.completed !== b.completed) {
+      return a.completed ? 1 : -1
     }
-  }
-
-  // Use tasks as provided - sorting is now handled by parent component
-  const displayTasks = tasks || []
+    return 0
+  })
 
   return (
     <div className="space-y-4">
@@ -129,73 +101,39 @@ newSet.delete(task.Id)
         )}
       </div>
 
-{/* Task Items */}
+      {/* Task Items */}
       <div className="space-y-3">
-        {displayTasks.map((task, index) => {
+        {sortedTasks.map((task, index) => {
           const isCompleting = completingTasks.has(task.Id)
-          const isEditing = editingTask?.Id === task.Id
-          
+const isEditing = editingTask?.Id === task.Id
           return (
-            <div key={task.Id}>
-              {/* Drop zone before first task */}
-              {index === 0 && (
-                <div
-                  className="h-2 -mb-2 opacity-0 hover:opacity-100 transition-opacity"
-                  onDragOver={handleDragOver}
-                  onDrop={(e) => handleDrop(e, task, 'before')}
-                >
-                  <div className="h-0.5 bg-primary-400 rounded mx-4"></div>
-                </div>
+            <div
+              key={task.Id}
+              className={cn(
+                "transform transition-all duration-300",
+                isCompleting && "task-completing",
+                "animate-slide-up"
               )}
-              
-              <div
-                draggable={!isEditing && !!onReorder}
-                onDragStart={(e) => handleDragStart(e, task)}
-                onDragEnd={handleDragEnd}
-                className={cn(
-                  "transform transition-all duration-300",
-                  isCompleting && "task-completing",
-                  "animate-slide-up",
-                  !isEditing && !!onReorder && "cursor-move hover:shadow-md",
-                  "group"
-                )}
-                style={{ animationDelay: `${index * 50}ms` }}
-              >
-                {isEditing ? (
-                  <div className="bg-white rounded-xl p-6 card-shadow border-2 border-primary-200">
-                    <TaskForm
-                      task={editingTask}
-                      onSubmit={handleSaveEdit}
-                      onCancel={handleCancelEdit}
-                      submitLabel="Save Changes"
-                    />
-                  </div>
-                ) : (
-                  <div className="relative">
-                    {!isEditing && !!onReorder && (
-                      <div className="absolute -left-3 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-50 transition-opacity">
-                        <ApperIcon name="GripVertical" className="h-4 w-4 text-gray-400" />
-                      </div>
-                    )}
-                    <TaskItem
-                      task={task}
-                      onComplete={() => handleComplete(task)}
-                      onEdit={() => handleEdit(task)}
-                      onDelete={() => onDelete(task)}
-                      isCompleting={isCompleting}
-                    />
-                  </div>
-                )}
-              </div>
-              
-              {/* Drop zone after each task */}
-              <div
-                className="h-2 -mt-2 opacity-0 hover:opacity-100 transition-opacity"
-                onDragOver={handleDragOver}
-                onDrop={(e) => handleDrop(e, task, 'after')}
-              >
-                <div className="h-0.5 bg-primary-400 rounded mx-4"></div>
-              </div>
+              style={{ animationDelay: `${index * 50}ms` }}
+            >
+              {isEditing ? (
+                <div className="bg-white rounded-xl p-6 card-shadow border-2 border-primary-200">
+                  <TaskForm
+                    task={editingTask}
+                    onSubmit={handleSaveEdit}
+                    onCancel={handleCancelEdit}
+                    submitLabel="Save Changes"
+                  />
+                </div>
+              ) : (
+                <TaskItem
+                  task={task}
+                  onComplete={() => handleComplete(task)}
+                  onEdit={() => handleEdit(task)}
+                  onDelete={() => onDelete(task)}
+                  isCompleting={isCompleting}
+                />
+              )}
             </div>
           )
         })}
@@ -211,7 +149,7 @@ newSet.delete(task.Id)
 const incompleteTasks = tasks.filter(t => !t.completed_c)
               incompleteTasks.forEach(task => handleComplete(task))
             }}
-disabled={tasks.every(t => t.completed_c)}
+            disabled={tasks.every(t => t.completed)}
           >
             <ApperIcon name="CheckCheck" className="h-4 w-4" />
             Complete All

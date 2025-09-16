@@ -20,7 +20,6 @@ const FilterBar = ({
 }) => {
 const sortOptions = [
     { value: "created", label: "Date Created" },
-    { value: "custom", label: "Custom Order" },
     { value: "priority", label: "Priority" },
     { value: "due", label: "Due Date" },
     { value: "alphabetical", label: "Alphabetical" },

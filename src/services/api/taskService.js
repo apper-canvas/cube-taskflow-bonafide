@@ -19,7 +19,7 @@ class TaskService {
     return prepared
   }
 
-async getAll() {
+  async getAll() {
     try {
       const params = {
         fields: [
@@ -31,11 +31,9 @@ async getAll() {
           { field: { Name: "due_date_c" } },
           { field: { Name: "created_at_c" } },
           { field: { Name: "completed_at_c" } },
-          { field: { Name: "category_id_c" } },
-          { field: { Name: "sort_order_c" } }
+          { field: { Name: "category_id_c" } }
         ],
         orderBy: [
-          { fieldName: "sort_order_c", sorttype: "ASC" },
           { fieldName: "created_at_c", sorttype: "DESC" }
         ],
         pagingInfo: { limit: 1000, offset: 0 }
@@ -59,48 +57,7 @@ async getAll() {
     }
   }
 
-  async updateSortOrders(sortOrderUpdates) {
-    try {
-      const records = sortOrderUpdates.map(update => ({
-        Id: update.Id,
-        sort_order_c: update.sort_order_c
-      }))
-      
-      const params = { records }
-      const response = await this.apperClient.updateRecord(this.tableName, params)
-      
-      if (!response.success) {
-        console.error(response.message)
-        throw new Error(response.message)
-      }
-      
-      if (response.results) {
-        const failedUpdates = response.results.filter(result => !result.success)
-        
-        if (failedUpdates.length > 0) {
-          console.error(`Failed to update sort orders:${JSON.stringify(failedUpdates)}`)
-          
-          failedUpdates.forEach(record => {
-            record.errors?.forEach(error => {
-              throw new Error(`${error.fieldLabel}: ${error.message}`)
-            })
-            if (record.message) throw new Error(record.message)
-          })
-        }
-        
-        return true
-      }
-    } catch (error) {
-      if (error?.response?.data?.message) {
-        console.error("Error updating sort orders:", error?.response?.data?.message)
-        throw new Error(error?.response?.data?.message)
-      }
-      console.error("Error updating sort orders:", error.message)
-      throw error
-    }
-  }
-
-async getById(id) {
+  async getById(id) {
     try {
       const params = {
         fields: [
@@ -112,8 +69,7 @@ async getById(id) {
           { field: { Name: "due_date_c" } },
           { field: { Name: "created_at_c" } },
           { field: { Name: "completed_at_c" } },
-          { field: { Name: "category_id_c" } },
-          { field: { Name: "sort_order_c" } }
+          { field: { Name: "category_id_c" } }
         ]
       }
       
@@ -275,7 +231,7 @@ async getById(id) {
   }
 
   async getByCategory(categoryId) {
-try {
+    try {
       const params = {
         fields: [
           { field: { Name: "Name" } },
@@ -286,8 +242,7 @@ try {
           { field: { Name: "due_date_c" } },
           { field: { Name: "created_at_c" } },
           { field: { Name: "completed_at_c" } },
-          { field: { Name: "category_id_c" } },
-          { field: { Name: "sort_order_c" } }
+          { field: { Name: "category_id_c" } }
         ],
         where: [
           {
@@ -319,7 +274,7 @@ try {
     }
   }
 
-async getByPriority(priority) {
+  async getByPriority(priority) {
     try {
       const params = {
         fields: [
@@ -331,8 +286,7 @@ async getByPriority(priority) {
           { field: { Name: "due_date_c" } },
           { field: { Name: "created_at_c" } },
           { field: { Name: "completed_at_c" } },
-          { field: { Name: "category_id_c" } },
-          { field: { Name: "sort_order_c" } }
+          { field: { Name: "category_id_c" } }
         ],
         where: [
           {
@@ -364,7 +318,7 @@ async getByPriority(priority) {
 }
   }
 
-async getTodayTasks() {
+  async getTodayTasks() {
     try {
       const params = {
         fields: [
@@ -376,8 +330,7 @@ async getTodayTasks() {
           { field: { Name: "due_date_c" } },
           { field: { Name: "created_at_c" } },
           { field: { Name: "completed_at_c" } },
-          { field: { Name: "category_id_c" } },
-          { field: { Name: "sort_order_c" } }
+          { field: { Name: "category_id_c" } }
         ],
         where: [
           {
@@ -409,7 +362,7 @@ async getTodayTasks() {
     }
   }
 
-async getOverdueTasks() {
+  async getOverdueTasks() {
     try {
       const today = new Date().toISOString().split('T')[0]
       const params = {
@@ -422,19 +375,33 @@ async getOverdueTasks() {
           { field: { Name: "due_date_c" } },
           { field: { Name: "created_at_c" } },
           { field: { Name: "completed_at_c" } },
-          { field: { Name: "category_id_c" } },
-          { field: { Name: "sort_order_c" } }
+          { field: { Name: "category_id_c" } }
         ],
-        where: [
+        whereGroups: [
           {
-            FieldName: "due_date_c",
-            Operator: "LessThan",
-            Values: [today]
-          },
-          {
-            FieldName: "completed_c",
-            Operator: "EqualTo",
-            Values: [false]
+            operator: "AND",
+            subGroups: [
+              {
+                conditions: [
+                  {
+                    fieldName: "due_date_c",
+                    operator: "LessThan",
+                    values: [today]
+                  }
+                ],
+                operator: "AND"
+              },
+              {
+                conditions: [
+                  {
+                    fieldName: "completed_c",
+                    operator: "EqualTo",
+                    values: [false]
+                  }
+                ],
+                operator: "AND"
+              }
+            ]
           }
         ],
         orderBy: [

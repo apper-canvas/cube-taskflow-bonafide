@@ -1,17 +1,16 @@
-import React, { useEffect, useState } from "react";
-import { useOutletContext, useParams } from "react-router-dom";
-import { useTasks } from "@/hooks/useTasks";
-import { useCategories } from "@/hooks/useCategories";
-import { toast } from "react-toastify";
-import ApperIcon from "@/components/ApperIcon";
-import Button from "@/components/atoms/Button";
-import TaskForm from "@/components/organisms/TaskForm";
-import QuickAdd from "@/components/organisms/QuickAdd";
-import TaskList from "@/components/organisms/TaskList";
-import FilterBar from "@/components/organisms/FilterBar";
-import { cn } from "@/utils/cn";
-import { isDueToday, isOverdue, parseInputDate } from "@/utils/date";
-import taskService from "@/services/api/taskService";
+import React, { useState, useEffect } from "react"
+import { useParams, useOutletContext } from "react-router-dom"
+import TaskList from "@/components/organisms/TaskList"
+import TaskForm from "@/components/organisms/TaskForm"
+import FilterBar from "@/components/organisms/FilterBar"
+import QuickAdd from "@/components/organisms/QuickAdd"
+import Button from "@/components/atoms/Button"
+import ApperIcon from "@/components/ApperIcon"
+import { useTasks } from "@/hooks/useTasks"
+import { useCategories } from "@/hooks/useCategories"
+import { isOverdue, isDueToday, parseInputDate } from "@/utils/date"
+import { toast } from "react-toastify"
+import { cn } from "@/utils/cn"
 
 const TasksPage = () => {
   const params = useParams()
@@ -24,7 +23,7 @@ const TasksPage = () => {
   const [selectedPriority, setSelectedPriority] = useState(null)
   const [showCompleted, setShowCompleted] = useState(true)
   const [sortBy, setSortBy] = useState("created")
-  const [customSortEnabled, setCustomSortEnabled] = useState(false)
+
   // Load tasks on mount and when params change
   useEffect(() => {
     loadTasks()
@@ -72,19 +71,12 @@ if (selectedPriority) {
 
 // Completed filtering
     if (!showCompleted) {
-      filtered = filtered.filter(task => !task.completed_c)
+      filtered = filtered.filter(task => !task.completed)
     }
 
-// Sorting
-    filtered.sort((a, b) => {
+    // Sorting
+filtered.sort((a, b) => {
       switch (sortBy) {
-        case "custom":
-          // Sort by sort_order_c if available, otherwise maintain current order
-          const aOrder = a.sort_order_c ?? 999999
-          const bOrder = b.sort_order_c ?? 999999
-          if (aOrder !== bOrder) return aOrder - bOrder
-          // Fallback to created date for items without sort order
-          return new Date(b.created_at_c) - new Date(a.created_at_c)
         case "priority":
           const priorityOrder = { high: 3, medium: 2, low: 1 }
           return (priorityOrder[b.priority_c] || 1) - (priorityOrder[a.priority_c] || 1)
@@ -104,45 +96,13 @@ if (selectedPriority) {
     return filtered
   }
 
-  const handleReorder = async (task, newIndex) => {
-    try {
-      const currentTasks = getFilteredTasks()
-      const oldIndex = currentTasks.findIndex(t => t.Id === task.Id)
-      
-      if (oldIndex === -1 || oldIndex === newIndex) return
-      
-      // Create new array with reordered tasks
-      const reorderedTasks = [...currentTasks]
-      reorderedTasks.splice(oldIndex, 1)
-      reorderedTasks.splice(newIndex, 0, task)
-      
-      // Calculate new sort orders
-      const sortOrderUpdates = reorderedTasks.map((t, index) => ({
-        Id: t.Id,
-        sort_order_c: (index + 1) * 10 // Use increments of 10 for easier future insertions
-      }))
-      
-      // Update sort orders in backend
-      await taskService.updateSortOrders(sortOrderUpdates)
-      
-      // Switch to custom sort mode and reload tasks
-      setSortBy("custom")
-      await loadTasks()
-      
-      toast.success("Task order updated")
-    } catch (error) {
-      console.error("Error reordering tasks:", error)
-      toast.error("Failed to update task order")
-    }
-  }
-
   const filteredTasks = getFilteredTasks()
 
   // Get page title based on current route
   const getPageTitle = () => {
     if (params.categoryId) {
-const category = categories?.find(c => c.Id === parseInt(params.categoryId))
-      return category?.Name || "Category"
+const category = categories.find(c => c.Id === parseInt(params.categoryId))
+      return category ? category.Name : "Category"
     }
     
     const routeTitles = {
@@ -202,7 +162,7 @@ const category = categories?.find(c => c.Id === parseInt(params.categoryId))
         completed_c: !task.completed_c,
         completed_at_c: !task.completed_c ? new Date().toISOString() : null
       })
-toast.success(task.completed_c ? "Task marked as incomplete" : "Task completed! 🎉")
+      toast.success(task.completed ? "Task marked as incomplete" : "Task completed! 🎉")
     } catch (error) {
       toast.error("Failed to update task")
     }
@@ -230,11 +190,10 @@ await deleteTask(task.Id)
     setSearchQuery("")
     setSelectedPriority(null)
     setShowCompleted(true)
-setSortBy("created")
-    setCustomSortEnabled(false)
+    setSortBy("created")
   }
 
-const hasActiveFilters = searchQuery || selectedPriority || !showCompleted || sortBy !== "created"
+  const hasActiveFilters = searchQuery || selectedPriority || !showCompleted || sortBy !== "created"
 
 return (
     <div className="max-w-4xl mx-auto space-y-6 text-left">
@@ -298,17 +257,17 @@ return (
         hasActiveFilters={hasActiveFilters}
       />
 
-{/* Task List */}
+      {/* Task List */}
       <TaskList
-        tasks={filteredTasks}
+tasks={filteredTasks}
+        loading={loading}
+        error={error}
+        onRetry={loadTasks}
         onComplete={handleCompleteTask}
         onUpdate={handleUpdateTask}
         onDelete={handleDeleteTask}
-        onReorder={sortBy === "custom" ? handleReorder : null}
         emptyMessage={getEmptyMessage()}
         emptyDescription={getEmptyDescription()}
-        loading={loading}
-        error={error}
       />
 
       {/* Quick Add Modal */}
